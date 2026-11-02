@@ -1,0 +1,6 @@
+{
+  "name": "coorg-trip",
+  "private": true,
+  "description": "Coorg unofficial trip form + private response API",
+  "engines": { "node": ">=18" }
+}
