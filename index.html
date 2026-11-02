@@ -76,6 +76,11 @@ body.film-open{overflow:hidden}
 .film-credit{position:absolute;right:20px;bottom:10px;font-size:9px;letter-spacing:.06em;color:#fff6dfcc;z-index:1;opacity:0;transition:opacity .8s}
 #cinema.film-on .film-credit{opacity:1}
 @media(max-width:700px){.film-credit{right:auto;left:22px;bottom:8px}}
+
+/* The video is the only thing in the box. The still photo appears ONLY if the video truly can't load. */
+#hero-image{animation:none!important;opacity:0!important;visibility:hidden}
+#hero-image.fallback{opacity:1!important;visibility:visible}
+.hero-video{z-index:-1}
 </style>
 </head>
 <body>
@@ -236,7 +241,7 @@ let sceneMode='film',visualsOn=!motionMedia.matches,heroVisible=true,rafPending=
 function motionUI(){const active=visualsOn;$('motion').setAttribute('aria-pressed',String(active));$('motion-label').textContent=active?'Pause':'Play';$('motion-icon').textContent=active?'Ⅱ':'▶';document.documentElement.classList.toggle('motion-paused',!active)}
 async function syncVideo(){if(sceneMode==='film'&&visualsOn&&(heroVisible||videoSound)&&!document.hidden){if(!videoSound){heroVideo.muted=true;heroVideo.defaultMuted=true}try{await heroVideo.play();$('film-notice').textContent=''}catch(e){armAutoplay()}}else heroVideo.pause()}
 heroVideo.addEventListener('timeupdate',()=>{$('reel-progress').style.width=(heroVideo.currentTime/(heroVideo.duration||25)*100)+'%'});
-heroVideo.addEventListener('error',()=>{$('film-notice').textContent='The reel could not play. Enjoy the Coorg photographs instead.';heroVideo.hidden=true;$('hero-image').style.opacity='1';visualsOn=false;motionUI()});
+heroVideo.addEventListener('error',()=>{if(!heroVideo.getAttribute('src'))return;const other=heroVideo.dataset.cut==='tall'?'wide':'tall';if(!heroVideo.dataset.retried&&typeof VIDEO!=='undefined'){heroVideo.dataset.retried='1';heroVideo.dataset.cut=other;heroVideo.poster=VIDEO[other].poster;heroVideo.src=VIDEO[other].src;heroVideo.load();syncVideo();return}heroVideo.hidden=true;$('hero-image').classList.add('fallback');$('film-notice').textContent='The video couldn’t load on this connection.'});
 $('motion').addEventListener('click',()=>{visualsOn=!visualsOn;motionUI();syncVideo()});
 function armAutoplay(){if(armAutoplay.on)return;armAutoplay.on=true;const go=()=>{armAutoplay.on=false;['pointerdown','touchstart','scroll','keydown'].forEach(t=>removeEventListener(t,go,true));if(visualsOn)syncVideo()};['pointerdown','touchstart','scroll','keydown'].forEach(t=>addEventListener(t,go,{capture:true,passive:true,once:true}))}
 // Film titles that change with each scene of the reel
